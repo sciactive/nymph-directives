@@ -17,7 +17,7 @@
 		<script src="../bower_components/nymph/src/Entity.js"></script>
 		<script src="Employee.js"></script>
 
-		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.2/angular.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.2/angular.js"></script>
 		<script src="../src/nymph-directives.js"></script>
 		<link rel="stylesheet" href="../src/nymph-directives.css">
 
@@ -55,6 +55,8 @@
 							<nymph-input model="entity.data.department" placeholder="Department" type="text">Department</nymph-input>
 							<nymph-input model="entity.data.current" type="checkbox">Current employee.</nymph-input>
 							<nymph-input model="entity.data.salary" placeholder="USD salary" type="number">Salary<nymph-note>Salary: {{entity.data.salary | currency}}</nymph-note></nymph-input>
+							<nymph-input model="entity.start_date" ng-model-options="{getterSetter: true}" type="date">Start Date</nymph-input>
+							<nymph-input model="entity.end_date" ng-model-options="{getterSetter: true}" type="date">End Date</nymph-input>
 						</nymph-pane>
 						<nymph-pane title="Static">
 							<nymph-input model="entity.data.name" type="static" data-class="alert alert-success" data-onclick="console.log('clicked!');">Name</nymph-input>
@@ -63,6 +65,8 @@
 							<nymph-input model="entity.data.department" type="static">Department</nymph-input>
 							<nymph-input model="entity.data.current ? 'Yes' : 'No'" type="static">Current Employee</nymph-input>
 							<nymph-input model="entity.data.salary | currency" type="static">Salary</nymph-input>
+							<nymph-input model="(entity.start_date() | date) || 'Error: None set'" type="static">Start Date</nymph-input>
+							<nymph-input model="entity.end_date() | date" type="static">End Date</nymph-input>
 						</nymph-pane>
 						<nymph-pane title="More" disabled="true">
 							<span>nothing here</span>
