@@ -68,8 +68,14 @@
 							<nymph-input model="(entity.start_date() | date) || 'Error: None set'" type="static">Start Date</nymph-input>
 							<nymph-input model="entity.end_date() | date" type="static">End Date</nymph-input>
 						</nymph-pane>
-						<nymph-pane title="More" disabled="true">
-							<span>nothing here</span>
+						<nymph-pane title="More">
+							<nymph-pane title="Less">
+								<span>nothing here</span>
+							</nymph-pane>
+							<nymph-pane divider="true"></nymph-pane>
+							<nymph-pane title="Even More" disabled="true">
+								<span>nothing here</span>
+							</nymph-pane>
 						</nymph-pane>
 					</nymph-tabs>
 				</nymph-form>

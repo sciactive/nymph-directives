@@ -4,7 +4,7 @@ var mod = angular.module('NymphDirectives', []);
 
 mod.directive('nymphForm', function(){
 	return {
-		restrict: 'E',
+		restrict: 'EA',
 		transclude: true,
 		scope: {
 			entity: '='
@@ -37,7 +37,7 @@ mod.directive('nymphForm', function(){
 }).directive('nymphTabs', function(){
 	// Shamelessly ripped from https://docs.angularjs.org/guide/directive
 	return {
-		restrict: 'E',
+		restrict: 'EA',
 		transclude: true,
 		scope: true,
 		controller: ['$scope', '$attrs', function($scope, $attrs){
@@ -45,44 +45,94 @@ mod.directive('nymphForm', function(){
 			$scope.stacked = typeof $attrs.stacked !== "undefined";
 			$scope.justified = typeof $attrs.justified !== "undefined";
 
-			var panes = $scope.panes = [];
+			var panes = $scope.panes = {};
 
-			$scope.select = function(pane) {
-				if (pane.disabled)
+			$scope.select = function(pane){
+				if (pane.pane.disabled)
 					return;
-				angular.forEach(panes, function(pane) {
-					pane.selected = false;
+				angular.forEach(panes, function(pane){
+					pane.pane.selected = false;
+					pane.pane.open = false;
+					if (pane.children.length) {
+						angular.forEach(pane.children, function(pane){
+							pane.selected = false;
+						});
+					}
 				});
-				pane.selected = true;
+				pane.pane.selected = true;
+				if (typeof pane.parent !== "undefined")
+					pane.parent.pane.selected = true;
 			};
 
-			this.addPane = function(pane) {
-				if (panes.length === 0) {
-					$scope.select(pane);
+			this.addPane = function(pane, parent){
+				if (Object.keys(panes).length === 0) {
+					pane.selected = true;
 				}
-				panes.push(pane);
+				if (typeof parent !== "undefined") {
+					if (typeof panes[parent] === "undefined")
+						panes[parent] = {"id": parent, "pane": null, "children": [pane]};
+					else
+						panes[parent].children.push(pane);
+				} else {
+					if (typeof panes[pane.id] === "undefined")
+						panes[pane.id] = {"id": pane.id, "pane": pane, "children": []};
+					else {
+						panes[pane.id].pane = pane;
+						for (var k in panes[pane.id].children) {
+							if (panes[pane.id].children[k].selected)
+								panes[pane.id].pane.selected = true;
+						}
+					}
+				}
 			};
 		}],
-		template: '<div role="tabpanel" class="nymph-tabs"><ul ng-class="{\'nav-tabs\': !pills, \'nav-pills\': pills, \'nav-stacked\': stacked, \'nav-justified\': justified}" class="nav" role="tablist"><li role="presentation" ng-repeat="pane in panes" ng-class="{active: pane.selected, disabled: pane.disabled}"><a role="tab" href="" ng-click="select(pane)">{{pane.title}}</a></li></ul><div class="tab-content" ng-transclude></div></div>'
+		template: '<div role="tabpanel" class="nymph-tabs">\
+			<ul ng-class="{\'nav-tabs\': !pills, \'nav-pills\': pills, \'nav-stacked\': stacked, \'nav-justified\': justified}" class="nav" role="tablist">\
+				<li role="presentation" ng-repeat="pane in panes | orderObjectBy:\'id\':false" ng-class="{active: pane.pane.selected, disabled: pane.pane.disabled, dropdown: pane.children.length, open: pane.pane.open}">\
+					<a ng-if="!pane.children.length" role="tab" href="" ng-click="select(pane)">{{pane.pane.title}}</a>\
+					<a ng-if="pane.children.length" class="dropdown-toggle" ng-click="pane.pane.open=!pane.pane.open" data-toggle="dropdown" href="" role="button" aria-expanded="false">{{pane.pane.title}} <span class="caret"></span></a>\
+					<ul ng-if="pane.children.length" class="dropdown-menu" role="menu">\
+						<li role="presentation" ng-repeat="child in pane.children" ng-class="{active: child.selected, disabled: child.disabled, divider: child.divider}">\
+							<a ng-if="!child.divider" role="tab" href="" ng-click="select({parent:pane,pane:child})">{{child.title}}</a>\
+						</li>\
+					</ul>\
+				</li>\
+			</ul>\
+			<div class="tab-content" ng-transclude></div>\
+		</div>'
 	};
 }).directive('nymphPane', function(){
 	// Also from https://docs.angularjs.org/guide/directive
 	return {
-		require: '^^nymphTabs',
-		restrict: 'E',
+		require: ['^^nymphTabs', '?^^nymphPane'],
+		restrict: 'EA',
 		transclude: true,
 		scope: {
 			title: '@',
-			disabled: '='
+			disabled: '=',
+			divider: '='
 		},
-		link: function(scope, element, attrs, tabsCtrl) {
-			tabsCtrl.addPane(scope);
+		controller: ['$scope', function($scope){
+			$scope.id = "nymphtab-"+Math.floor((new Date()).getTime() +""+ Math.random() * 99999);
+			this.paneID = $scope.id;
+			this.isParent = function(){
+				$scope.isParent = true;
+			};
+		}],
+		link: function(scope, element, attrs, ctrls) {
+			var tabsCtrl = ctrls[0], paneCtrl = ctrls[1];
+			if (paneCtrl !== null) {
+				tabsCtrl.addPane(scope, paneCtrl.paneID);
+				paneCtrl.isParent();
+			} else {
+				tabsCtrl.addPane(scope);
+			}
 		},
-		template: '<div role="tabpanel" class="tab-pane" ng-show="selected" ng-transclude></div>'
+		template: '<div ng-class="{\'tab-pane\': !isParent}" role="tabpanel" ng-show="selected" ng-transclude></div>'
 	};
 }).directive('nymphTitle', function(){
 	return {
-		restrict: 'E',
+		restrict: 'EA',
 		transclude: true,
 		scope: {
 			elem: '='
@@ -92,7 +142,7 @@ mod.directive('nymphForm', function(){
 }).directive('nymphInput', ['$compile', function($compile){
 	return {
 		require: '?^^nymphForm',
-		restrict: 'E',
+		restrict: 'EA',
 		priority: 2,
 		transclude: false,
 		scope: false,
@@ -185,6 +235,20 @@ mod.directive('nymphForm', function(){
 		scope: true,
 		priority: 1,
 		template: '<span class="help-block nymph-note" ng-transclude></span>'
+	};
+}).filter('orderObjectBy', function(){
+	// taken from http://justinklemm.com/angularjs-filter-ordering-objects-ngrepeat/
+	return function(items, field, reverse){
+		var filtered = [];
+		angular.forEach(items, function(item){
+			filtered.push(item);
+		});
+		filtered.sort(function(a, b){
+			return (a[field] > b[field] ? 1 : -1);
+		});
+		if (reverse)
+			filtered.reverse();
+		return filtered;
 	};
 });
 
