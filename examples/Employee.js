@@ -21,7 +21,7 @@
 	Employee.prototype = new Entity();
 
 	var thisClass = {
-		// === The Name of the Class ===
+		// === The Name of the Server Class ===
 		class: 'Employee',
 
 		// === Class Variables ===

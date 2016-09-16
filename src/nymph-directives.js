@@ -193,6 +193,20 @@ mod.directive('nymphForm', function(){
 					}
 					inputType = 'input';
 					break;
+				case 'select':
+					switch (formType) {
+						case 'default':
+							template = '<div class="form-group"><label for="'+uniqid+'">'+contents+'</label><input type="'+attrs.type+'" class="form-control" id="'+uniqid+'" ng-model="'+attrs.model+'">'+noteHTML+'</div>';
+							break;
+						case 'horizontal':
+							template = '<div class="form-group"><label for="'+uniqid+'" class="col-sm-2 control-label">'+contents+'</label><div class="col-sm-10"><input type="'+attrs.type+'" class="form-control" id="'+uniqid+'" ng-model="'+attrs.model+'">'+noteHTML+'</div></div>';
+							break;
+						case 'inline':
+							template = '<div class="form-group"><div class="input-group"><label class="sr-only" for="'+uniqid+'">'+contents+'</label><input type="'+attrs.type+'" class="form-control" id="'+uniqid+'" ng-model="'+attrs.model+'">'+noteHTML+'</div></div>';
+							break;
+					}
+					inputType = 'input';
+					break;
 				case 'static':
 					switch (formType) {
 						case 'default':

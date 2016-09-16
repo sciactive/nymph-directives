@@ -16,7 +16,7 @@ define('IS_MANAGER', true);
  * @property string $phone The employee's phone number.
  */
 class Employee extends Entity {
-	const etype = 'employee';
+	const ETYPE = 'employee';
 
 	public function __construct($id = 0) {
 		$this->addTag('employee');
